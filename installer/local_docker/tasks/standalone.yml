@@ -4,7 +4,8 @@
     name: postgres
     state: started
     restart_policy: unless-stopped
-    image: postgres:9.6
+#    image: postgres:9.6
+    image: localhost:5000/postgres:9.6
     volumes:
       - "{{ postgres_data_dir }}:/var/lib/postgresql/data:Z"
     env:
@@ -20,7 +21,8 @@
     name: rabbitmq
     state: started
     restart_policy: unless-stopped
-    image: rabbitmq:3
+#    image: rabbitmq:3
+    image: localhost:5000/rabbitmq:3
     env:
       RABBITMQ_DEFAULT_VHOST: "awx"
   register: rabbitmq_container_activate
@@ -30,7 +32,8 @@
     name: memcached
     state: started
     restart_policy: unless-stopped
-    image: memcached:alpine
+#    image: memcached:alpine
+    image: localhost:5000/memcached:alpine
 
 - name: Wait for postgres and rabbitmq to activate
   pause:

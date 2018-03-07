@@ -2,6 +2,17 @@
 version: '2'
 services:
 
+  lb:
+    image: localhost:5000/awx_haproxy:latest
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    hostname: haproxy
+    user: root
+    restart: unless-stopped
+
   web:
     image: {{ awx_web_docker_actual_image }}
     depends_on:
@@ -10,8 +21,6 @@ services:
       {% if pg_hostname is not defined %}
       - postgres
       {% endif %}
-    ports:
-      - "{{ host_port }}:8052"
     hostname: awxweb
     user: root
     restart: unless-stopped
@@ -59,6 +68,8 @@ services:
     {% if awx_container_search_domains is defined %}
     dns: "{{ awx_alternate_dns_servers }}"
     {% endif %}
+    volumes:
+      - {{ project_data_dir }}:/var/lib/awx/projects/
     environment:
       http_proxy: {{ http_proxy | default('') }}
       https_proxy: {{ https_proxy | default('') }}
@@ -80,18 +91,18 @@ services:
       AWX_ADMIN_PASSWORD: {{ default_admin_password|default('password') }}
 
   rabbitmq:
-    image: rabbitmq:3
+    image: localhost:5000/rabbitmq:3
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_VHOST: awx
 
   memcached:
-    image: memcached:alpine
+    image: localhost:5000/memcached:alpine
     restart: unless-stopped
 
   {% if pg_hostname is not defined %}
   postgres:
-    image: postgres:9.6
+    image: localhost:5000/postgres:9.6
     restart: unless-stopped
     volumes:
       - {{ postgres_data_dir }}:/var/lib/postgresql/data:Z
