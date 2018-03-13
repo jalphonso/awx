@@ -1,5 +1,5 @@
 #jinja2: lstrip_blocks: True
-version: '2'
+version: '2.1'
 services:
 
   lb:
@@ -16,10 +16,13 @@ services:
   web:
     image: {{ awx_web_docker_actual_image }}
     depends_on:
-      - rabbitmq
-      - memcached
+      rabbitmq:
+        condition: service_started
+      memcached:
+        condition: service_started
       {% if pg_hostname is not defined %}
-      - postgres
+      postgres:
+        condition: service_healthy
       {% endif %}
     hostname: awxweb
     user: root
@@ -104,6 +107,11 @@ services:
   postgres:
     image: localhost:5000/postgres:9.6
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U {{ pg_username }}"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
     volumes:
       - {{ postgres_data_dir }}:/var/lib/postgresql/data:Z
     environment:
